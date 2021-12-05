@@ -48,11 +48,11 @@ impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for (i, cell) in self.rows.iter().enumerate() {
             if i % 5 == 0 {
-                write!(f, "\n").unwrap();
+                write!(f, "\n")?;
             }
-            write!(f, "{}", cell).unwrap();
+            write!(f, "{}", cell)?;
         }
-        write!(f, "")
+        Ok(())
     }
 }
 impl Board {
