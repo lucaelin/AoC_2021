@@ -20,18 +20,15 @@ pub fn sample() -> String {
 fn parse(contents: &String) -> Vec<((usize, usize), (usize, usize))> {
     contents
         .lines()
-        .map(|l| {
-            l.split(" -> ")
-                .map(|e| {
-                    e.split(",")
-                        .map(|c| c.parse().unwrap())
-                        .collect::<Vec<usize>>()
-                })
-                .map(|e| (e[0], e[1]))
-                .collect::<Vec<(usize, usize)>>()
+        .map(|l| l.split_once(" -> ").unwrap())
+        .map(|(start, end)| {
+            let (x, y) = start.split_once(",").unwrap();
+            let start = (x.parse().unwrap(), y.parse().unwrap());
+            let (x, y) = end.split_once(",").unwrap();
+            let end = (x.parse().unwrap(), y.parse().unwrap());
+            (start, end)
         })
-        .map(|e| (e[0], e[1]))
-        .collect()
+        .collect::<Vec<((usize, usize), (usize, usize))>>()
 }
 
 const WIDTH: usize = 1000;
@@ -52,37 +49,28 @@ fn dir(start: (usize, usize), end: (usize, usize)) -> (i8, i8) {
 fn solve(contents: &String, diagonals: bool) -> u32 {
     let vents = parse(contents);
 
-    let mut matrix = vec![0; WIDTH * WIDTH];
-
-    for (start, end) in vents {
-        println!("vector {:?}", (start, end));
-        let mut pos = start;
-        let dir = dir(start, end);
-        if !diagonals && dir.0 != 0 && dir.1 != 0 {
-            continue;
-        }
-        println!("direction {:?}", dir);
-        while pos.0 != end.0 || pos.1 != end.1 {
+    vents
+        .iter()
+        .fold(&mut vec![0; WIDTH * WIDTH], |matrix, &vent| {
+            let (start, end) = vent;
+            let mut pos = start;
+            let dir = dir(start, end);
+            if !diagonals && dir.0 != 0 && dir.1 != 0 {
+                return matrix;
+            }
+            //println!("direction {:?}", dir);
+            while pos.0 != end.0 || pos.1 != end.1 {
+                //println!("setting {:?}", pos);
+                matrix[coords(pos)] += 1;
+                pos.0 = (pos.0 as i32 + dir.0 as i32) as usize;
+                pos.1 = (pos.1 as i32 + dir.1 as i32) as usize;
+            }
             //println!("setting {:?}", pos);
             matrix[coords(pos)] += 1;
-            pos.0 = (pos.0 as i32 + dir.0 as i32) as usize;
-            pos.1 = (pos.1 as i32 + dir.1 as i32) as usize;
-        }
-        //println!("setting {:?}", pos);
-        matrix[coords(pos)] += 1;
-    }
-
-    /* // print full matrix
-    for (i, v) in matrix.iter().enumerate() {
-      if i % WIDTH == 0 {
-        print!("\n");
-      }
-      print!(" {:02}", v);
-    }
-    print!("\n");
-    */
-
-    matrix.iter().fold(0, |p, c| p + if *c > 1 { 1 } else { 0 })
+            matrix
+        })
+        .iter()
+        .fold(0, |p, c| p + if *c > 1 { 1 } else { 0 })
 }
 
 pub fn part_1(contents: &String) -> u32 {
