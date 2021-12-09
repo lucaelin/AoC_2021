@@ -13,7 +13,7 @@ macro_rules! module {
     };
 }
 
-module!(day8);
+module!(day9);
 
 fn main() {
     let args: Vec<String> = env::args().collect();
